@@ -21,10 +21,14 @@ class Contact(BaseModel):
     name: Optional[str] = None
     email: str
     phone: Optional[str] = None
-    
+
+class Location(BaseModel):
+    city:str
+    state: Optional[str] = None
+    state_code: Optional[str] = None
 class Deal(BaseModel):
-    pickup: Optional[dict] = None
-    delivery: Optional[dict] = None
+    pickup: Location
+    delivery: Location
     quote_amount: Optional[float] = None
 class HubspotDeal(BaseModel):
     company: Company
