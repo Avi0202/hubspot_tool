@@ -3,6 +3,33 @@ import aiohttp
 import json
 from datetime import datetime, timezone
 from fastapi import HTTPException
+from pydantic import BaseModel
+from typing import Optional
+
+
+class Company(BaseModel):
+    name: str
+    phone: Optional[str] = None
+    address_line1: Optional[str] = None
+    address_line2: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
+    country: Optional[str] = None
+    
+class Contact(BaseModel):
+    name: Optional[str] = None
+    email: str
+    phone: Optional[str] = None
+    
+class Deal(BaseModel):
+    pickup: Optional[dict] = None
+    delivery: Optional[dict] = None
+    quote_amount: Optional[float] = None
+class HubspotDeal(BaseModel):
+    company: Company
+    contact: Contact
+    deal: Deal
 
 class HubSpotQuoteTool(Toolkit):
     """
@@ -27,7 +54,7 @@ class HubSpotQuoteTool(Toolkit):
             description="Creates/reuses a company, contact, and deal in HubSpot with a specified quote amount, then generates and attaches an email."
         )
 
-    async def auto_create_quote_flow(self, data: dict, quote_amount: float):
+    async def auto_create_quote_flow(self, data: HubspotDeal):
         """
         Perform the automated HubSpot quote flow.
         """
@@ -36,7 +63,8 @@ class HubSpotQuoteTool(Toolkit):
                 # ------------------------------------------------------------------
                 # 1️⃣ Company creation / reuse
                 # ------------------------------------------------------------------
-                company_data = data.get("company", {})
+                
+                company_data = data.company.dict()
                 company_name = company_data.get("name")
                 if not company_name:
                     raise HTTPException(400, "Missing company name")
@@ -76,7 +104,7 @@ class HubSpotQuoteTool(Toolkit):
                 # ------------------------------------------------------------------
                 # 2️⃣ Contact creation / reuse
                 # ------------------------------------------------------------------
-                contact_data = data.get("contact", {})
+                contact_data = data.contact.dict()
                 contact_email = contact_data.get("email")
                 contact_name = contact_data.get("name")
 
@@ -103,9 +131,10 @@ class HubSpotQuoteTool(Toolkit):
                 # ------------------------------------------------------------------
                 # 3️⃣ Deal creation
                 # ------------------------------------------------------------------
-                deal_data = data.get("deal", {})
+                deal_data = data.deal.dict()
                 pickup = deal_data.get("pickup", {})
                 delivery = deal_data.get("delivery", {})
+                quote_amount = deal_data.get("quote_amount", 0.0)
 
                 deal_name = f"{contact_name or 'Customer'} Quote from {pickup.get('city','')} to {delivery.get('city','')}"
                 print(f"\n🔹 Creating deal: {deal_name}")
