@@ -6,7 +6,16 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from typing import Optional
 
+# class Toolkit:
+#     def __init__(self):
+#         pass
 
+#     # Strands normally exposes this to register tools.
+#     # But for your local testing, it can be a no-op.
+#     def register(self, fn, name=None, description=None):
+#         print(f"[DummyToolkit] Registered tool: {name}")
+#         return fn
+    
 class Company(BaseModel):
     name: str
     phone: Optional[str] = None
@@ -181,7 +190,7 @@ class HubSpotQuoteTool(Toolkit):
 
                 payload = {
                     "session_id": "1761653686716",
-                    "message": json.dumps(data),
+                    "message": data.model_dump_json(),
                     "agent_id": "6900b36599417c626e85542d"
                 }
 
@@ -223,3 +232,41 @@ class HubSpotQuoteTool(Toolkit):
         except Exception as e:
             print(f"❌ FAILED HubSpot auto flow: {e}")
             raise HTTPException(status_code=500, detail=str(e))
+
+
+# if __name__=="__main__":
+#     import asyncio
+#     tool = HubSpotQuoteTool(hubspot_token="You need to put your HubSpot token here")
+#     dummy_data = HubspotDeal(
+#     company=Company(
+#         name="Northstar Auto Haulers LLC",
+#         phone="333-555-8080",
+#         address_line1="7421 Ridgewood Drive",
+#         address_line2="Unit B",
+#         city="Denver",
+#         state="CO",
+#         zip_code="80202",
+#         country="USA"
+#     ),
+#     contact=Contact(
+#         name="Michael Carter",
+#         email="michael.carter@example.com",
+#         phone="333-901-2244"
+#     ),
+#     deal=Deal(
+#         pickup=Location(
+#             city="Denver",
+#             state="Colorado",
+#             state_code="CO"
+#         ),
+#         delivery=Location(
+#             city="San Diego",
+#             state="California",
+#             state_code="CA"
+#         ),
+#         quote_amount=1425.75
+#     )
+# )
+
+
+#     asyncio.run(tool.auto_create_quote_flow(dummy_data))
